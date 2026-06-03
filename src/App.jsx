@@ -179,6 +179,9 @@ async function fetchGA4GSC(rt) {
   return results;
 }
 
+// ===== Verification Results (updated via GitHub push) =====
+var VERIFY_RESULTS = {};
+
 // ===== Main =====
 export default function App() {
   const [tab, setTab] = useState("overview");
@@ -186,6 +189,33 @@ export default function App() {
   const [expImp, setExpImp] = useState(null);
   const [apiKeyInp, setApiKeyInp] = useState(getApiKey());
   const [isSetup, setIsSetup] = useState(hasApiKey());
+  const [showVerify, setShowVerify] = useState(null);
+
+  // Persisted executed tasks
+  const [executedTasks, setExecutedTasks] = useState(function() {
+    try { return JSON.parse(localStorage.getItem("sri_executed_tasks") || "{}"); } catch { return {}; }
+  });
+
+  function executeTask(impTitle) {
+    var updated = Object.assign({}, executedTasks);
+    updated[impTitle] = { date: new Date().toISOString(), status: "executing" };
+    setExecutedTasks(updated);
+    localStorage.setItem("sri_executed_tasks", JSON.stringify(updated));
+  }
+
+  function isExecuted(impTitle) {
+    return !!executedTasks[impTitle];
+  }
+
+  function getExecutionDate(impTitle) {
+    var t = executedTasks[impTitle];
+    if (!t) return null;
+    return new Date(t.date).toLocaleDateString("ja-JP");
+  }
+
+  function hasVerifyResult(impTitle) {
+    return !!VERIFY_RESULTS[impTitle];
+  }
   const [rangeType, setRangeType] = useState("last_30_days");
   const [loading, setLoading] = useState(false);
   const [lastUp, setLastUp] = useState(null);
@@ -312,9 +342,24 @@ export default function App() {
                   {imp.actions.map(function(act, j) { return <div key={j} style={{ display: "flex", gap: 6, padding: "3px 0", lineHeight: 1.5 }}><span style={{ color: C.acc2, fontWeight: 700, flexShrink: 0 }}>{(j + 1) + "."}</span><span>{act}</span></div>; })}
                 </div>
                 <div style={{ padding: "10px 12px", background: "#f0faf0", borderRadius: 8, marginBottom: 8, fontSize: 12 }}><strong style={{ color: C.suc }}>{"\u898B\u8FBC\u307F\u52B9\u679C\uFF1A"}</strong> {imp.effect}</div>
-                <div style={{ display: "flex", gap: 6 }}>
-                  <button onClick={function() { setChatOpen(true); }} style={{ fontSize: 11, padding: "5px 12px", borderRadius: 6, border: "1px solid " + C.acc, background: "transparent", color: C.acc, cursor: "pointer", fontWeight: 600, fontFamily: "inherit" }}>{"\u8A73\u3057\u304F\u805E\u304F"}</button>
-                  <button onClick={function() { setChatOpen(true); }} style={{ fontSize: 11, padding: "5px 12px", borderRadius: 6, border: "2px solid " + C.acc5, background: "transparent", color: C.acc5, cursor: "pointer", fontWeight: 600, fontFamily: "inherit" }}>{"\u52B9\u679C\u6E2C\u5B9A\u3092\u4F9D\u983C"}</button>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {!isExecuted(imp.title) ? (
+                    <button onClick={function() { executeTask(imp.title); }} style={{ fontSize: 12, padding: "8px 20px", borderRadius: 8, border: "none", background: C.acc, color: "#fff", cursor: "pointer", fontWeight: 700, fontFamily: "inherit" }}>{"\u25B6 \u5B9F\u884C\u3059\u308B"}</button>
+                  ) : (
+                    <span style={{ fontSize: 11, padding: "8px 16px", borderRadius: 8, background: "#e8f5e9", color: C.suc, fontWeight: 700 }}>{"\u2713 \u5B9F\u884C\u4E2D\uFF08" + getExecutionDate(imp.title) + " \u958B\u59CB\uFF09"}</span>
+                  )}
+                  <button
+                    onClick={function() { if (hasVerifyResult(imp.title)) setShowVerify(imp.title); }}
+                    disabled={!hasVerifyResult(imp.title)}
+                    style={{
+                      fontSize: 12, padding: "8px 20px", borderRadius: 8, fontWeight: 700, fontFamily: "inherit",
+                      border: "2px solid " + (hasVerifyResult(imp.title) ? C.acc5 : "#ccc"),
+                      background: hasVerifyResult(imp.title) ? "transparent" : "#f0f0f0",
+                      color: hasVerifyResult(imp.title) ? C.acc5 : "#aaa",
+                      cursor: hasVerifyResult(imp.title) ? "pointer" : "default",
+                    }}
+                  >{hasVerifyResult(imp.title) ? "\uD83D\uDCCA \u52B9\u679C\u691C\u8A3C\u3092\u898B\u308B" : "\uD83D\uDCCA \u52B9\u679C\u691C\u8A3C\uFF08\u6E96\u5099\u4E2D\uFF09"}</button>
+                  <button onClick={function() { setChatOpen(true); }} style={{ fontSize: 11, padding: "8px 12px", borderRadius: 8, border: "1px solid " + C.acc2, background: "transparent", color: C.acc2, cursor: "pointer", fontWeight: 600, fontFamily: "inherit" }}>{"\u8A73\u3057\u304F\u805E\u304F"}</button>
                 </div>
               </div>)}
             </div>);
@@ -322,6 +367,21 @@ export default function App() {
         </div>)}
       </div>
       <Chat isOpen={chatOpen} onClose={function() { setChatOpen(false); }} dataCtx={chatCtx} />
+      {showVerify && VERIFY_RESULTS[showVerify] && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1100, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={function() { setShowVerify(null); }}>
+          <div style={{ background: "#fff", borderRadius: 14, padding: 28, width: 600, maxWidth: "90vw", maxHeight: "80vh", overflow: "auto", boxShadow: "0 8px 32px rgba(0,0,0,0.2)" }} onClick={function(e) { e.stopPropagation(); }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0, color: C.acc5 }}>{"\uD83D\uDCCA \u52B9\u679C\u691C\u8A3C\u30EC\u30DD\u30FC\u30C8"}</h3>
+              <button onClick={function() { setShowVerify(null); }} style={{ background: "none", border: "none", fontSize: 18, cursor: "pointer", color: C.mut }}>x</button>
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>{showVerify}</div>
+            {VERIFY_RESULTS[showVerify].date && <div style={{ fontSize: 11, color: C.mut, marginBottom: 12 }}>{"\u691C\u8A3C\u65E5: " + VERIFY_RESULTS[showVerify].date}</div>}
+            <div style={{ fontSize: 13, lineHeight: 1.7 }}>
+              <Md text={VERIFY_RESULTS[showVerify].report} />
+            </div>
+          </div>
+        </div>
+      )}
       {!chatOpen && <button onClick={function() { setChatOpen(true); }} style={{ position: "fixed", bottom: 18, right: 18, width: 48, height: 48, borderRadius: "50%", background: C.acc, border: "none", color: "#fff", fontSize: 20, cursor: "pointer", boxShadow: "0 4px 16px rgba(232,93,58,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 90 }}>{"\uD83D\uDCAC"}</button>}
     </div>
   );
