@@ -259,15 +259,13 @@ export default function App() {
               <span style={{ fontSize: 10, opacity: 0.4 }}>2026/06/03 (7日間)</span>
             </div>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>www.sri-net.co.jp</h1>
-            <div style={{ fontSize: 10, opacity: 0.4, marginTop: 2 }}>{lastUp ? "\u66F4\u65B0: " + lastUp.toLocaleTimeString("ja-JP") : "\u57CB\u3081\u8FBC\u307F\u30C7\u30FC\u30BF (6/3)"}</div>
+            <div style={{ fontSize: 11, opacity: 0.7, marginTop: 4, display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ padding: "2px 8px", background: "rgba(255,255,255,0.1)", borderRadius: 4 }}>{"\u6700\u7D42\u66F4\u65B0: 2026/06/03 21:30"}</span>
+              <span style={{ opacity: 0.5 }}>{"\u76F4\u8FD17\u65E5\u9593\u306E\u30C7\u30FC\u30BF"}</span>
+            </div>
           </div>
           <button onClick={function() { setChatOpen(true); }} style={{ padding: "7px 16px", background: "rgba(232,93,58,0.9)", border: "none", borderRadius: 8, color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>{"\u6539\u5584\u3092\u76F8\u8AC7"}</button>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
-          {RANGE_OPTS.map(function(r) { return <button key={r.id} onClick={function() { setRangeType(r.id); }} style={{ padding: "3px 10px", fontSize: 10, fontWeight: 600, border: "none", borderRadius: 5, cursor: "pointer", fontFamily: "inherit", background: rangeType === r.id ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.05)", color: rangeType === r.id ? "#fff" : "rgba(255,255,255,0.5)" }}>{r.l}</button>; })}
-          <button onClick={doRefresh} disabled={loading} style={{ padding: "4px 14px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.3)", background: loading ? "rgba(255,255,255,0.1)" : "rgba(45,156,219,0.8)", color: "#fff", fontSize: 11, fontWeight: 700, cursor: loading ? "wait" : "pointer", fontFamily: "inherit" }}>{loading ? "\u53D6\u5F97\u4E2D..." : "\uD83D\uDD04 \u66F4\u65B0"}</button>
-        </div>
-        {err && <div style={{ marginTop: 6, padding: "5px 10px", background: "rgba(231,76,60,0.2)", borderRadius: 5, fontSize: 10, color: "#ff8a80" }}>{err}</div>}
         <div style={{ display: "flex", gap: 3, marginTop: 12 }}>{tabs.map(function(t) { return <button key={t.id} onClick={function() { setTab(t.id); }} style={{ padding: "5px 14px", fontSize: 11, fontWeight: 600, border: "none", borderRadius: "7px 7px 0 0", cursor: "pointer", fontFamily: "inherit", background: tab === t.id ? C.bg : "rgba(255,255,255,0.06)", color: tab === t.id ? C.pri : "rgba(255,255,255,0.6)" }}>{t.l}</button>; })}</div>
       </div>
 
