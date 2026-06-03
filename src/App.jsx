@@ -258,7 +258,9 @@ export default function App() {
   const totPV = pages.reduce(function(s, p) { return s + (p.views || 0); }, 0);
   const totClk = queries.reduce(function(s, q) { return s + (q.clicks || 0); }, 0);
   const totImp = queries.reduce(function(s, q) { return s + (q.imp || q.impressions || 0); }, 0);
-  const tabs = [{ id: "overview", l: "\u6982\u8981" }, { id: "ga4", l: "GA4" }, { id: "gsc", l: "\u691C\u7D22" }, { id: "improve", l: "\u6539\u5584\u30DD\u30A4\u30F3\u30C8" }];
+  const verifiedImps = improvements.filter(function(imp) { return hasVerifyResult(imp.title); });
+  const unverifiedImps = improvements.filter(function(imp) { return !hasVerifyResult(imp.title); });
+  const tabs = [{ id: "overview", l: "\u6982\u8981" }, { id: "ga4", l: "GA4" }, { id: "gsc", l: "\u691C\u7D22" }, { id: "improve", l: "\u6539\u5584\u30DD\u30A4\u30F3\u30C8" }, { id: "verified", l: "\u52B9\u679C\u691C\u8A3C\u6E08\u307F" + (verifiedImps.length > 0 ? " (" + verifiedImps.length + ")" : "") }];
 
   // Build dynamic chat context
   var chatCtx = DATA_CTX;
@@ -324,8 +326,9 @@ export default function App() {
         {tab === "gsc" && (<div><div style={{ background: C.card, borderRadius: 10, padding: 14, overflowX: "auto" }}><table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}><thead><tr style={{ borderBottom: "2px solid " + C.bor }}>{["\u30AF\u30A8\u30EA", "\u30AF\u30EA\u30C3\u30AF", "\u8868\u793A", "CTR", "\u9806\u4F4D"].map(function(h) { return <th key={h} style={{ textAlign: "left", padding: "5px 8px", fontWeight: 600, color: C.mut, fontSize: 10 }}>{h}</th>; })}</tr></thead><tbody>{QUERIES.map(function(q, i) { return (<tr key={i} style={{ borderBottom: "1px solid " + C.bor, background: (q.ctr * 100) < 3 && q.imp > 100 ? "#fef5f4" : "transparent" }}><td style={{ padding: "5px 8px", fontWeight: 600 }}>{q.query}</td><td style={{ padding: "5px 8px", fontWeight: 700 }}>{q.clicks}</td><td style={{ padding: "5px 8px" }}>{q.imp.toLocaleString()}</td><td style={{ padding: "5px 8px", color: (q.ctr * 100) < 3 ? C.dan : C.pri, fontWeight: 600 }}>{(q.ctr * 100).toFixed(1)}%</td><td style={{ padding: "5px 8px", color: q.pos > 10 ? C.dan : C.suc }}>{q.pos.toFixed(1)}</td></tr>); })}</tbody></table></div><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginTop: 14 }}>{DEVICES.map(function(d, i) { return (<div key={i} style={{ background: C.card, borderRadius: 10, padding: 14, textAlign: "center" }}><div style={{ fontSize: 18 }}>{i === 0 ? "\uD83D\uDDA5" : i === 1 ? "\uD83D\uDCF1" : "\uD83D\uDCDF"}</div><div style={{ fontSize: 11, fontWeight: 700 }}>{d.device}</div><div style={{ fontSize: 18, fontWeight: 800, marginTop: 2 }}>{d.clicks}</div><div style={{ fontSize: 10, color: C.mut }}>CTR {(d.ctr * 100).toFixed(1)}%</div></div>); })}</div></div>)}
 
         {tab === "improve" && (<div>
-          <div style={{ marginBottom: 12 }}><h2 style={{ fontSize: 16, fontWeight: 800, margin: 0 }}>{"\u6539\u5584\u30DD\u30A4\u30F3\u30C8\uFF08" + improvements.length + "\u4EF6\uFF09"}</h2><div style={{ fontSize: 11, color: C.mut, marginTop: 2 }}>{"\u30C7\u30FC\u30BF\u306B\u57FA\u3065\u304F\u6539\u5584\u63D0\u6848 | \u52B9\u679C\u6E2C\u5B9A\u306F\u30C1\u30E3\u30C3\u30C8\u3067\u4F9D\u983C"}</div></div>
-          {improvements.map(function(imp, i) {
+          <div style={{ marginBottom: 12 }}><h2 style={{ fontSize: 16, fontWeight: 800, margin: 0 }}>{"\u6539\u5584\u30DD\u30A4\u30F3\u30C8\uFF08" + unverifiedImps.length + "\u4EF6\uFF09"}</h2><div style={{ fontSize: 11, color: C.mut, marginTop: 2 }}>{"\u30C7\u30FC\u30BF\u306B\u57FA\u3065\u304F\u6539\u5584\u63D0\u6848 | \u52B9\u679C\u691C\u8A3C\u6E08\u307F\u306F\u5225\u30BF\u30D6\u306B\u79FB\u52D5"}</div></div>
+          {unverifiedImps.length === 0 && <div style={{ textAlign: "center", padding: 40, color: C.mut, fontSize: 13 }}>{"\u3059\u3079\u3066\u306E\u6539\u5584\u30DD\u30A4\u30F3\u30C8\u304C\u52B9\u679C\u691C\u8A3C\u6E08\u307F\u3067\u3059 \uD83C\uDF89"}</div>}
+          {unverifiedImps.map(function(imp, i) {
             const isExp = expImp === i;
             return (<div key={i} style={{ background: C.card, borderRadius: 10, marginBottom: 8, borderLeft: "4px solid " + priC(imp.pri) }}>
               <div onClick={function() { setExpImp(isExp ? null : i); }} style={{ padding: "12px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }}>
@@ -365,6 +368,42 @@ export default function App() {
                     }}
                   >{hasVerifyResult(imp.title) ? "\uD83D\uDCCA \u52B9\u679C\u691C\u8A3C\u3092\u898B\u308B" : "\uD83D\uDCCA \u52B9\u679C\u691C\u8A3C\uFF08\u6E96\u5099\u4E2D\uFF09"}</button>
                   <button onClick={function() { setChatOpen(true); }} style={{ fontSize: 11, padding: "8px 12px", borderRadius: 8, border: "1px solid " + C.acc2, background: "transparent", color: C.acc2, cursor: "pointer", fontWeight: 600, fontFamily: "inherit" }}>{"\u8A73\u3057\u304F\u805E\u304F"}</button>
+                </div>
+              </div>)}
+            </div>);
+          })}
+        </div>)}
+
+        {tab === "verified" && (<div>
+          <div style={{ marginBottom: 12 }}><h2 style={{ fontSize: 16, fontWeight: 800, margin: 0 }}>{"\u52B9\u679C\u691C\u8A3C\u6E08\u307F\uFF08" + verifiedImps.length + "\u4EF6\uFF09"}</h2><div style={{ fontSize: 11, color: C.mut, marginTop: 2 }}>{"\u691C\u8A3C\u5B8C\u4E86\u3057\u305F\u6539\u5584\u30DD\u30A4\u30F3\u30C8"}</div></div>
+          {verifiedImps.length === 0 && (<div style={{ textAlign: "center", padding: 40, color: C.mut, fontSize: 13 }}>{"\u52B9\u679C\u691C\u8A3C\u6E08\u307F\u306E\u6539\u5584\u30DD\u30A4\u30F3\u30C8\u306F\u307E\u3060\u3042\u308A\u307E\u305B\u3093"}</div>)}
+          {verifiedImps.map(function(imp, vi) {
+            var vr = VERIFY_RESULTS[imp.title];
+            var isExp = expImp === ("v_" + vi);
+            return (<div key={vi} style={{ background: C.card, borderRadius: 10, marginBottom: 10, borderLeft: "4px solid " + C.acc5 }}>
+              <div onClick={function() { setExpImp(isExp ? null : "v_" + vi); }} style={{ padding: "12px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 26, height: 26, borderRadius: "50%", background: C.acc5, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>{"\u2713"}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700 }}>{imp.title}</span>
+                    <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 6, fontWeight: 700, background: C.acc5 + "18", color: C.acc5 }}>{"\u691C\u8A3C\u6E08"}</span>
+                  </div>
+                  <div style={{ fontSize: 11, color: C.mut, marginTop: 2 }}>{"\u691C\u8A3C\u65E5: " + (vr ? vr.date : "-") + " | " + imp.metric}</div>
+                </div>
+                <span style={{ fontSize: 14, color: C.mut, transform: isExp ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>{"\u25BC"}</span>
+              </div>
+              {isExp && (<div style={{ padding: "0 16px 14px", borderTop: "1px solid " + C.bor }}>
+                <div style={{ padding: "10px 12px", background: "#eef6ff", borderRadius: 8, margin: "10px 0 8px", fontSize: 12 }}>
+                  <strong style={{ color: C.acc2 }}>{"\u5BFE\u8C61\u30DA\u30FC\u30B8\uFF1A"}</strong>
+                  <a href={imp.url} target="_blank" rel="noreferrer" style={{ color: C.acc2, wordBreak: "break-all", textDecoration: "underline" }}>{imp.url}</a>
+                </div>
+                {vr && (<div style={{ padding: "14px 16px", background: "#f8f6ff", borderRadius: 10, border: "1px solid " + C.acc5 + "30", marginBottom: 8 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: C.acc5, marginBottom: 10 }}>{"\uD83D\uDCCA \u52B9\u679C\u691C\u8A3C\u30EC\u30DD\u30FC\u30C8"}</div>
+                  <div style={{ fontSize: 13, lineHeight: 1.7 }}><Md text={vr.report} /></div>
+                </div>)}
+                <div style={{ padding: "10px 12px", background: C.bg, borderRadius: 8, fontSize: 12 }}>
+                  <strong style={{ color: C.acc2, display: "block", marginBottom: 6 }}>{"\u5B9F\u65BD\u3057\u305F\u30A2\u30AF\u30B7\u30E7\u30F3"}</strong>
+                  {imp.actions.map(function(act, j) { return <div key={j} style={{ display: "flex", gap: 6, padding: "3px 0", lineHeight: 1.5 }}><span style={{ color: C.acc2, fontWeight: 700, flexShrink: 0 }}>{(j + 1) + "."}</span><span>{act}</span></div>; })}
                 </div>
               </div>)}
             </div>);
