@@ -126,8 +126,27 @@ function buildImprovementsFrom(pagesData, queriesData) {
   return items.slice(0, 10);
 }
 
+// ===== Comparison Data (prev 30 days) =====
+var PREV = { sessions: 3610, pv: 6756, engagement: 0.5125, bounce: 0.4875, clicks: 1480, impressions: 101835, ctr: 0.0145, position: 13.71 };
+function pctChange(cur, prev) { if (!prev) return ""; var c = ((cur - prev) / prev * 100); return (c >= 0 ? "+" : "") + c.toFixed(1) + "%"; }
+function ptChange(cur, prev) { if (prev === undefined) return ""; var c = (cur - prev) * 100; return (c >= 0 ? "+" : "") + c.toFixed(1) + "pt"; }
+
 // ===== Components =====
-function KPI({ label, value, sub, color }) { return (<div style={{ background: C.card, borderRadius: 10, padding: "14px 18px", borderLeft: "4px solid " + color, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}><div style={{ fontSize: 11, color: C.mut, fontWeight: 500 }}>{label}</div><div style={{ fontSize: 22, fontWeight: 700, color: C.pri, marginTop: 2 }}>{value}</div>{sub && <div style={{ fontSize: 10, color: C.mut, marginTop: 1 }}>{sub}</div>}</div>); }
+function KPI({ label, value, sub, color, prev, unit }) {
+  var change = prev !== undefined ? (unit === "pct" ? ptChange(parseFloat(value) / 100, prev) : pctChange(parseFloat(String(value).replace(/,/g, "")), prev)) : null;
+  var isUp = change && change.startsWith("+");
+  var isDown = change && change.startsWith("-");
+  var goodDir = label.includes("\u76F4\u5E30") ? isDown : isUp;
+  return (<div style={{ background: C.card, borderRadius: 10, padding: "14px 18px", borderLeft: "4px solid " + color, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+    <div style={{ fontSize: 11, color: C.mut, fontWeight: 500 }}>{label}</div>
+    <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+      <div style={{ fontSize: 22, fontWeight: 700, color: C.pri, marginTop: 2 }}>{value}</div>
+      {change && <span style={{ fontSize: 11, fontWeight: 700, color: goodDir ? C.suc : (isUp || isDown) ? C.dan : C.mut }}>{change}</span>}
+    </div>
+    {sub && <div style={{ fontSize: 10, color: C.mut, marginTop: 1 }}>{sub}</div>}
+    {prev !== undefined && <div style={{ fontSize: 9, color: C.mut, marginTop: 2 }}>{"\u524D\u671F: " + (unit === "pct" ? (prev * 100).toFixed(1) + "%" : prev.toLocaleString())}</div>}
+  </div>);
+}
 function CTip({ active, payload, label }) { if (!active || !payload || !payload.length) return null; return (<div style={{ background: "#fff", border: "1px solid " + C.bor, borderRadius: 6, padding: "6px 10px", fontSize: 10 }}><div style={{ fontWeight: 700, marginBottom: 3 }}>{label}</div>{payload.map(function(p, i) { return <div key={i} style={{ color: p.color }}>{p.name}: <strong>{typeof p.value === "number" ? p.value.toLocaleString() : p.value}</strong></div>; })}</div>); }
 function Md({ text }) { const ls = (text || "").split("\n"), es = []; let li = []; function fl() { if (li.length) { es.push(<ul key={"u" + es.length} style={{ margin: "5px 0", paddingLeft: 18 }}>{li.map(function(l, i) { return <li key={i} style={{ marginBottom: 2 }}>{l}</li>; })}</ul>); li = []; } } function il(t) { return t.split(/(\*\*[^*]+\*\*)/g).map(function(p, i) { return p.startsWith("**") && p.endsWith("**") ? <strong key={i}>{p.slice(2, -2)}</strong> : p; }); } ls.forEach(function(l, i) { const t = l.trim(); if (t.startsWith("## ")) { fl(); es.push(<div key={i} style={{ fontWeight: 700, fontSize: 13, marginTop: 10, marginBottom: 3, borderBottom: "1px solid " + C.bor, paddingBottom: 2 }}>{t.slice(3)}</div>); } else if (t.startsWith("- ") || t.startsWith("* ")) { li.push(il(t.slice(2))); } else if (/^\d+\.\s/.test(t)) { li.push(il(t.replace(/^\d+\.\s/, ""))); } else if (t === "") { fl(); } else { fl(); es.push(<p key={i} style={{ margin: "3px 0", lineHeight: 1.6 }}>{il(t)}</p>); } }); fl(); return <div>{es}</div>; }
 
@@ -309,10 +328,10 @@ export default function App() {
       <div style={{ padding: "16px 28px 60px", maxWidth: chatOpen ? "calc(100% - 400px)" : "100%", transition: "max-width 0.3s" }}>
         {tab === "overview" && (<div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginBottom: 16 }}>
-            <KPI label={"\u30BB\u30C3\u30B7\u30E7\u30F3"} value={totS.toLocaleString()} sub="GA4" color={C.acc} />
-            <KPI label="PV" value={totPV.toLocaleString()} sub={"PV/S: " + (totPV / totS).toFixed(1)} color={C.acc2} />
-            <KPI label={"\u691C\u7D22\u30AF\u30EA\u30C3\u30AF"} value={totClk.toLocaleString()} sub="GSC" color={C.acc3} />
-            <KPI label={"\u691C\u7D22\u8868\u793A"} value={totImp.toLocaleString()} sub={"CTR " + (totClk / totImp * 100).toFixed(1) + "%"} color={C.acc5} />
+            <KPI label={"\u30BB\u30C3\u30B7\u30E7\u30F3"} value={totS.toLocaleString()} sub="GA4" color={C.acc} prev={PREV.sessions} />
+            <KPI label="PV" value={totPV.toLocaleString()} sub={"PV/S: " + (totPV / totS).toFixed(1)} color={C.acc2} prev={PREV.pv} />
+            <KPI label={"\u691C\u7D22\u30AF\u30EA\u30C3\u30AF"} value={totClk.toLocaleString()} sub="GSC" color={C.acc3} prev={PREV.clicks} />
+            <KPI label={"\u691C\u7D22\u8868\u793A"} value={totImp.toLocaleString()} sub={"CTR " + (totClk / totImp * 100).toFixed(1) + "%"} color={C.acc5} prev={PREV.impressions} />
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 16 }}>
             <div style={{ background: C.card, borderRadius: 10, padding: 16 }}><h3 style={{ fontSize: 12, fontWeight: 700, margin: "0 0 6px" }}>{"\u30C1\u30E3\u30CD\u30EB\u5225"}</h3><ResponsiveContainer width="100%" height={180}><PieChart><Pie data={TRAFFIC.map(function(t) { return { name: t.channel, value: t.sessions }; })} cx="50%" cy="50%" innerRadius={30} outerRadius={60} paddingAngle={3} dataKey="value">{TRAFFIC.map(function(_, i) { return <Cell key={i} fill={PIE_C[i]} />; })}</Pie><Tooltip formatter={function(v) { return v + "s"; }} /><Legend iconSize={7} wrapperStyle={{ fontSize: 10 }} /></PieChart></ResponsiveContainer></div>
