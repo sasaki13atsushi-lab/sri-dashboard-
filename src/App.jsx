@@ -13,6 +13,7 @@ const PAGES = [{ path: "/", views: 1989, sessions: 1217, engagement: 0.7141, bou
 const USERS = [{ type: "新規", sessions: 3166, engagement: 0.5152, vps: 1.66, duration: 129 }, { type: "リピーター", sessions: 1360, engagement: 0.6412, vps: 6.97, duration: 822 }];
 const QUERIES = [{ query: "株式会社sri", clicks: 90, imp: 179, ctr: 0.5028, pos: 1.13 }, { query: "sri", clicks: 72, imp: 2818, ctr: 0.0256, pos: 3.53 }, { query: "buntan", clicks: 47, imp: 220, ctr: 0.2136, pos: 3.07 }, { query: "会社 書類整理アイデア", clicks: 37, imp: 481, ctr: 0.0769, pos: 3.95 }, { query: "株式会社ｓｒｉ", clicks: 31, imp: 41, ctr: 0.7561, pos: 1.05 }, { query: "sri 新潟", clicks: 25, imp: 45, ctr: 0.5556, pos: 1.0 }, { query: "たまって箱", clicks: 16, imp: 44, ctr: 0.3636, pos: 1.0 }, { query: "hubble api", clicks: 15, imp: 48, ctr: 0.3125, pos: 2.04 }, { query: "書類整理 アイデア", clicks: 12, imp: 489, ctr: 0.0245, pos: 6.56 }, { query: "hubble api連携", clicks: 11, imp: 32, ctr: 0.3438, pos: 1.13 }, { query: "履歴書 保管期間", clicks: 8, imp: 390, ctr: 0.0205, pos: 5.27 }, { query: "保管", clicks: 6, imp: 5836, ctr: 0.001, pos: 4.29 }, { query: "buntanリーガル", clicks: 5, imp: 37, ctr: 0.1351, pos: 1.51 }, { query: "履歴書 保存期間", clicks: 5, imp: 163, ctr: 0.0307, pos: 4.18 }, { query: "書類整理 おすすめ", clicks: 5, imp: 148, ctr: 0.0338, pos: 7.25 }];
 const DEVICES = [{ device: "PC", clicks: 1154, imp: 69749, ctr: 0.0165 }, { device: "モバイル", clicks: 515, imp: 48806, ctr: 0.0106 }, { device: "タブレット", clicks: 9, imp: 1179, ctr: 0.0076 }];
+var TOTALS = { sessions: 4737, pv: 14848, clicks: 1678, impressions: 119734 };
 const QP = { "sri": "/", "\u682A\u5F0F\u4F1A\u793Esri": "/about_us", "buntan": "/buntan", "\u4F1A\u793E \u66F8\u985E\u6574\u7406\u30A2\u30A4\u30C7\u30A2": "/column/document-arrangement_idea_classification", "\u66F8\u985E\u6574\u7406 \u30A2\u30A4\u30C7\u30A2": "/column/document-arrangement_idea_classification", "\u66F8\u985E\u6574\u7406 \u304A\u3059\u3059\u3081": "/column/document-arrangement_idea_classification", "\u66F8\u985E \u6574\u7406\u65B9\u6CD5": "/column/document-arrangement_idea_classification", "\u4FDD\u7BA1": "/storage/", "\u5C65\u6B74\u66F8 \u4FDD\u7BA1\u671F\u9593": "/column/resume-management", "\u6587\u66F8\u7BA1\u7406\u53F0\u5E33": "/column/document-arrangement_idea_classification", "\u4F1A\u793E \u66F8\u985E\u6574\u7406 \u30A2\u30A4\u30C7\u30A2": "/column/document-arrangement_idea_classification", "\u6574\u7406 \u6574\u9813 \u9055\u3044": "/2013/02/01/166/" };
 
 // ===== IMPROVEMENTS (detailed) =====
@@ -273,10 +274,10 @@ export default function App() {
   }, [rangeType]);
 
   const improvements = buildImprovementsFrom(pages, queries);
-  const totS = traffic.reduce(function(s, t) { return s + t.sessions; }, 0);
-  const totPV = pages.reduce(function(s, p) { return s + (p.views || 0); }, 0);
-  const totClk = queries.reduce(function(s, q) { return s + (q.clicks || 0); }, 0);
-  const totImp = queries.reduce(function(s, q) { return s + (q.imp || q.impressions || 0); }, 0);
+  const totS = liveTraffic ? traffic.reduce(function(s, t) { return s + t.sessions; }, 0) : TOTALS.sessions;
+  const totPV = livePages ? pages.reduce(function(s, p) { return s + (p.views || 0); }, 0) : TOTALS.pv;
+  const totClk = liveQueries ? queries.reduce(function(s, q) { return s + (q.clicks || 0); }, 0) : TOTALS.clicks;
+  const totImp = liveQueries ? queries.reduce(function(s, q) { return s + (q.imp || q.impressions || 0); }, 0) : TOTALS.impressions;
   const verifiedImps = improvements.filter(function(imp) { return hasVerifyResult(imp.title); });
   const unverifiedImps = improvements.filter(function(imp) { return !hasVerifyResult(imp.title); });
   const tabs = [{ id: "overview", l: "\u6982\u8981" }, { id: "ga4", l: "GA4" }, { id: "gsc", l: "\u691C\u7D22" }, { id: "improve", l: "\u6539\u5584\u30DD\u30A4\u30F3\u30C8" }, { id: "verified", l: "\u52B9\u679C\u691C\u8A3C\u6E08\u307F" + (verifiedImps.length > 0 ? " (" + verifiedImps.length + ")" : "") }];
@@ -316,8 +317,8 @@ export default function App() {
             </div>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>www.sri-net.co.jp</h1>
             <div style={{ fontSize: 11, opacity: 0.7, marginTop: 4, display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ padding: "2px 8px", background: "rgba(255,255,255,0.1)", borderRadius: 4 }}>{"\u6700\u7D42\u66F4\u65B0: 2026/06/03 21:30"}</span>
-              <span style={{ opacity: 0.5 }}>{"\u76F4\u8FD17\u65E5\u9593\u306E\u30C7\u30FC\u30BF"}</span>
+              <span style={{ padding: "2px 8px", background: "rgba(255,255,255,0.1)", borderRadius: 4 }}>{"\u6700\u7D42\u66F4\u65B0: 2026/06/16"}</span>
+              <span style={{ opacity: 0.5 }}>{"\u76F4\u8FD130\u65E5\u9593\u306E\u30C7\u30FC\u30BF"}</span>
             </div>
           </div>
           <button onClick={function() { setChatOpen(true); }} style={{ padding: "7px 16px", background: "rgba(232,93,58,0.9)", border: "none", borderRadius: 8, color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>{"\u6539\u5584\u3092\u76F8\u8AC7"}</button>
