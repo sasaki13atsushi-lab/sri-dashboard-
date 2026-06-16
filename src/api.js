@@ -16,11 +16,11 @@ async function callAPI(body) {
 }
 
 export async function fetchWithSupermetrics(sys, usr) {
-  return callAPI({ model: "claude-sonnet-4-20250514", max_tokens: 4096, system: sys, messages: [{ role: "user", content: usr }], mcp_servers: MCP_SM });
+  return callAPI({ model: "claude-sonnet-4-6", max_tokens: 4096, system: sys, messages: [{ role: "user", content: usr }], mcp_servers: MCP_SM });
 }
 
 export async function chatWithAgent(sys, msgs) {
-  return callAPI({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system: sys, messages: msgs });
+  return callAPI({ model: "claude-sonnet-4-6", max_tokens: 1000, system: sys, messages: msgs });
 }
 
 export function extractText(d) {
