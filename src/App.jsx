@@ -164,8 +164,8 @@ function Chat({ isOpen, onClose, dataCtx }) {
     var apiMsgs = msgs.slice(1).map(function(m) { return { role: m.role, content: m.content }; }).concat([{ role: "user", content: u }]);
     chatWithAgent(dataCtx || DATA_CTX, apiMsgs).then(function(d) {
       setMsgs(function(p) { return p.concat([{ role: "assistant", content: (d.content || []).map(function(b) { return b.text || ""; }).filter(Boolean).join("\n") || "\u30A8\u30E9\u30FC" }]); });
-    }).catch(function() {
-      setMsgs(function(p) { return p.concat([{ role: "assistant", content: "\u30A8\u30E9\u30FC\u304C\u767A\u751F\u3057\u307E\u3057\u305F\u3002" }]); });
+    }).catch(function(e) {
+      setMsgs(function(p) { return p.concat([{ role: "assistant", content: "\u30A8\u30E9\u30FC: " + (e.message || "\u4E0D\u660E\u306A\u30A8\u30E9\u30FC") }]); });
     }).finally(function() { setLd(false); });
   }
   if (!isOpen) return null;
