@@ -5,14 +5,18 @@ export function hasApiKey() { return !!getApiKey(); }
 
 async function callAPI(body) {
   const key = getApiKey();
-  if (!key) throw new Error("APIキーが未設定");
+  if (!key) throw new Error("APIキーが未設定です。設定画面からキーを入力してください。");
   const resp = await fetch("/.netlify/functions/anthropic-proxy", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ...body, _apiKey: key }),
   });
-  if (!resp.ok) throw new Error("API error: " + resp.status);
-  return resp.json();
+  const data = await resp.json();
+  if (!resp.ok) {
+    const msg = data.error ? (typeof data.error === "string" ? data.error : data.error.message || JSON.stringify(data.error)) : "不明なエラー";
+    throw new Error("API " + resp.status + ": " + msg);
+  }
+  return data;
 }
 
 export async function fetchWithSupermetrics(sys, usr) {
