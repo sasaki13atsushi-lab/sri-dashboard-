@@ -14,7 +14,7 @@ export async function handler(event) {
     const headers = {
       "Content-Type": "application/json",
       "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
+      "anthropic-version": "2025-01-01",
     };
     if (hasMCP) headers["anthropic-beta"] = "mcp-client-2025-04-04";
     const resp = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers, body: JSON.stringify(body) });
