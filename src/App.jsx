@@ -29,7 +29,7 @@ function buildImprovementsFrom(pagesData, queriesData) {
   sorted.slice(0, 4).forEach(function(p) {
     const b = (p.bounce * 100).toFixed(1), ab = (avgB * 100).toFixed(1), e = (p.engagement * 100).toFixed(1), ae = (avgE * 100).toFixed(1);
     const dd = p.duration - avgD, name = pL(p.path);
-    const issues = [
+    let issues = [
       "\u76F4\u5E30\u7387: " + b + "% \u2015 \u30B5\u30A4\u30C8\u5E73\u5747" + ab + "%\u306B\u5BFE\u3057\u3066" + (p.bounce * 100 - avgB * 100).toFixed(1) + "pt\u9AD8\u304F\u3001\u8A2A\u554F\u8005\u306E" + b + "%\u304C\u4ED6\u30DA\u30FC\u30B8\u3092\u898B\u305A\u306B\u96E2\u8131",
       "\u30A8\u30F3\u30B2\u30FC\u30B8\u30E1\u30F3\u30C8\u7387: " + e + "% \u2015 \u30B5\u30A4\u30C8\u5E73\u5747" + ae + "%\u3092\u4E0B\u56DE\u308A\u3001\u30B3\u30F3\u30C6\u30F3\u30C4\u304C\u30E6\u30FC\u30B6\u30FC\u306E\u671F\u5F85\u306B\u5408\u3063\u3066\u3044\u306A\u3044\u53EF\u80FD\u6027",
       "\u5E73\u5747\u6EDE\u5728: " + p.duration + "\u79D2 \u2015 \u30B5\u30A4\u30C8\u5E73\u5747" + avgD.toFixed(0) + "\u79D2\u3068\u6BD4\u8F03\u3057\u3066" + (dd > 0 ? dd.toFixed(0) + "\u79D2\u9577\u3044" : Math.abs(dd).toFixed(0) + "\u79D2\u77ED\u3044") + (p.duration < 60 ? "\u3002\u8A18\u4E8B\u3092\u8AAD\u307E\u305A\u306B\u96E2\u8131\u3057\u3066\u3044\u308B\u53EF\u80FD\u6027\u304C\u9AD8\u3044" : ""),
